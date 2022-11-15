@@ -1,0 +1,153 @@
+<style>
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    #board-outer {
+        --cell-size: 10rem;
+        --cell-margin: .7rem;
+        --cell-radius: .5rem;
+        --cell-total-side: calc(var(--cell-size) + 2 * var(--cell-margin));
+
+        display: inline-block;
+        position: relative;
+
+        padding: var(--cell-margin);
+
+        border-radius: 1rem;
+        background-color: #bbada0;
+        font-family: 'Operator Mono', 'Source Code Pro', Menlo, Monaco, Consolas, Courier New, monospace;
+    }
+
+    #board {
+        width: calc({{ cols }} * var(--cell-total-side));
+        height: calc({{ rows }} * var(--cell-total-side));
+
+        position: relative;
+    }
+
+    .board-cell {
+        display: block;
+        float: left;
+
+        width: var(--cell-size);
+        height: var(--cell-size);
+
+        margin: var(--cell-margin);
+
+        background-color: #cdc1b4;
+        border-radius: var(--cell-radius);
+    }
+
+    .board-tile {
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        width: var(--cell-size);
+        height: var(--cell-size);
+
+        margin: var(--cell-margin);
+
+        border-radius: var(--cell-radius);
+        animation-duration: .2s;
+        animation-fill-mode: both;
+
+        color: #222222;
+    }
+
+    @keyframes lost-screen-animation {
+        0% {
+            opacity: 0
+        }
+        100% {
+            opacity: 1
+        }
+    }
+
+    #end-screen {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        z-index: 2;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        background-color: rgba(0, 0, 0, 0.6);
+        color: #ffffff;
+        font-size: 3rem;
+
+        animation-name: lost-screen-animation;
+        animation-duration: 2s;
+        animation-fill-mode: both;
+
+        border-radius: 1rem;
+
+        margin-top: calc(-1 * var(--cell-margin));
+        margin-left: calc(-1 * var(--cell-margin));
+    }
+
+</style>
+
+<div id="board-outer">
+
+    {% if has_lost or has_won %}
+        <div id="end-screen">
+            {% if has_won %}
+                Has ganado!
+            {% elif has_lost %}
+                Has perdido!
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div id="board">
+        {% for _ in range(rows) %}
+            {% for _ in range(cols) %}
+                <div class="board-cell"></div>
+            {% endfor %}
+        {% endfor %}
+
+        {% for tile in tiles %}
+            <style>
+                @keyframes tile-{{ loop.index }} {
+                    0% {
+                    {% if tile.is_new %}
+                        transform: scale(0);
+                    {% endif %}
+                        top: calc({{ tile.origin[0] }} * {{ 100/rows }}%);
+                        left: calc({{ tile.origin[1] }} * {{ 100/cols }}%);
+                    }
+                    100% {
+                    {% if tile.is_new %}
+                        transform: scale(1);
+                    {% endif %}
+                        top: calc({{ tile.destination[0] }} * {{ 100/rows }}%);
+                        left: calc({{ tile.destination[1] }} * {{ 100/cols }}%);
+                    }
+                }
+
+                .tile-{{ loop.index }} {
+                    animation-name: tile-{{ loop.index }};
+                {% if tile.is_new %}
+                    animation-delay: .2s;
+                {% endif %}
+                    background-color: {{ tile.background_color }};
+                    font-size: {{ tile.font_size }}rem;
+                }
+            </style>
+            <div class="board-tile tile-{{ loop.index }}">
+                {{ tile.value }}
+            </div>
+        {% endfor %}
+    </div>
+</div>
